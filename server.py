@@ -23,7 +23,7 @@ except socket.error as e:
     print(e)
 
 server.listen(MAX_PLAYERS)
-print("Waiting for a connection, Server started!")
+print("[SERVER] Waiting for a connection, Server started!")
 
 
 players = [
@@ -41,7 +41,7 @@ def threaded_client(connection: socket.socket, player: int):
             received_data = pickle.loads(connection.recv(2048 * 2))
 
             if not received_data:
-                print("Disconnected")
+                print(f"[SERVER] Player {player} Disconnected")
                 break
             else:
                 players[player] = received_data
@@ -50,15 +50,16 @@ def threaded_client(connection: socket.socket, player: int):
                     reply = players[0]
                 else:
                     reply = players[1]
-                print("Received:", received_data)
-                print("Sending:", reply)
+                #print("Received:", received_data)
+                #print("Sending:", reply)
 
             connection.sendall(pickle.dumps(reply))
 
-        except Exception:
+        except Exception as e:
+            print("[SERVER] Error:", e)
             break
 
-    print("Lost connection!")
+    print(f"[SERVER] Player {player} lost connection!")
     connection.close()
     global current_player
     current_player -= 1
@@ -67,7 +68,7 @@ def threaded_client(connection: socket.socket, player: int):
 current_player = 0
 while True:
     connection, address = server.accept()
-    print("Connected to:", address)
+    print("[SERVER] Connected to:", address)
 
     start_new_thread(threaded_client, (connection, current_player))
     current_player += 1
