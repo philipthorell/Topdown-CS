@@ -1,6 +1,6 @@
 import pygame as pg
 
-from player import Player
+from network import Network
 
 
 WIDTH, HEIGHT = 500, 500
@@ -9,17 +9,20 @@ pg.display.set_caption("Client")
 clock = pg.time.Clock()
 FPS = 60
 
-client_number = 0
-
 
 class Game:
     running = True
 
     def __init__(self):
-        self.player = Player(50, 50, 100, 100, (0, 255, 0))
+        self.network = Network()
+        self.player = self.network.get_player()
 
-    def draw(self):
+        if self.player is None:
+            self.running = False
+
+    def draw(self, player2):
         screen.fill("white")
+        player2.draw(screen)
         self.player.draw(screen)
 
     def run(self):
@@ -29,9 +32,11 @@ class Game:
                 if event.type == pg.QUIT:
                     self.running = False
 
+            player2 = self.network.send(self.player)
+
             self.player.handle_input()
 
-            self.draw()
+            self.draw(player2)
 
             pg.display.flip()
 

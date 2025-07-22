@@ -3,8 +3,7 @@ import pygame as pg
 
 class Player:
     def __init__(self, x, y, width, height, color):
-        self.x = x
-        self.y = y
+        self.pos = pg.Vector2(x, y)
         self.width = width
         self.height = height
         self.color = color
@@ -18,12 +17,15 @@ class Player:
         keys = pg.key.get_pressed()
 
         if keys[pg.K_LEFT]:
-            self.x -= self.vel
+            self.pos.x -= self.vel
         if keys[pg.K_RIGHT]:
-            self.x += self.vel
+            self.pos.x += self.vel
         if keys[pg.K_UP]:
-            self.y -= self.vel
+            self.pos.y -= self.vel
         if keys[pg.K_DOWN]:
-            self.y += self.vel
+            self.pos.y += self.vel
 
-        self.rect = (self.x, self.y, self.width, self.height)
+        self.update()
+
+    def update(self):
+        self.rect = (self.pos.x, self.pos.y, self.width, self.height)
