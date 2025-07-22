@@ -8,7 +8,7 @@ import os
 
 load_dotenv()
 
-server = os.getenv("local_ip_address")
+server = os.getenv("local_server_ip_address")
 port = 5555
 
 
@@ -24,7 +24,8 @@ print("Waiting for a connection, Server started!")
 
 
 def threaded_client(connection: socket.socket):
-    reply = ""
+    connection.send(str.encode("Connected"))
+
     while True:
         try:
             data = connection.recv(2048)
@@ -41,6 +42,9 @@ def threaded_client(connection: socket.socket):
 
         except Exception:
             break
+
+    print("Lost connection!")
+    connection.close()
 
 
 while True:
