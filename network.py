@@ -13,7 +13,7 @@ class Network:
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server = os.getenv("local_server_ip_address")
         self.port = 5555
-        self.addr = (self.server, self.port)
+        self.address = (self.server, self.port)
         self.player = self.connect()
 
     def get_player(self):
@@ -21,7 +21,7 @@ class Network:
 
     def connect(self):
         try:
-            self.client.connect(self.addr)
+            self.client.connect(self.address)
             player_data = self.client.recv(2048)
             return pickle.loads(player_data)
         except Exception as e:
@@ -30,7 +30,7 @@ class Network:
     def send(self, data):
         try:
             self.client.send(pickle.dumps(data))
-            recv_data = self.client.recv(2048 * 2)
+            recv_data = self.client.recv(2048)
             return pickle.loads(recv_data)
         except (pickle.UnpicklingError, EOFError) as e:
             print(f"Pickle error: {e}")

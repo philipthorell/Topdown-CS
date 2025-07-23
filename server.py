@@ -26,10 +26,23 @@ server.listen(MAX_PLAYERS)
 print("[SERVER] Waiting for a connection, Server started!")
 
 
+WORLD_SIZE = (0, 0), (2500, 2500)
+
 players = [
-    Player(0, 0, 50, 50, (255, 0, 0)),  # Player 1
-    Player(100, 100, 50, 50, (0, 0, 255))   # Player 2
+    Player(1, 0, 0, 50, 50, (255, 0, 0)),  # Player 1
+    Player(2, 100, 100, 50, 50, (0, 0, 255))   # Player 2
 ]
+
+
+def player_out_of_bounds(the_player: Player):
+    if the_player.pos.x < WORLD_SIZE[0][0]:
+        the_player.pos.x = WORLD_SIZE[0][0]
+    if the_player.pos.x > WORLD_SIZE[1][0]:
+        the_player.pos.x = WORLD_SIZE[1][0]
+    if the_player.pos.y < WORLD_SIZE[0][1]:
+        the_player.pos.y = WORLD_SIZE[0][1]
+    if the_player.pos.y > WORLD_SIZE[1][1]:
+        the_player.pos.y = WORLD_SIZE[1][1]
 
 
 def threaded_client(connection: socket.socket, player: int):
@@ -38,18 +51,17 @@ def threaded_client(connection: socket.socket, player: int):
 
     while True:
         try:
-            received_data = pickle.loads(connection.recv(2048 * 2))
+            received_data: Player = pickle.loads(connection.recv(2048))
 
             if not received_data:
                 print(f"[SERVER] Player {player} Disconnected")
                 break
             else:
+                player_out_of_bounds(received_data)
+
                 players[player] = received_data
 
-                if player == 1:
-                    reply = players[0]
-                else:
-                    reply = players[1]
+                reply = players
                 #print("Received:", received_data)
                 #print("Sending:", reply)
 
