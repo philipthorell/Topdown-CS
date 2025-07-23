@@ -37,8 +37,8 @@ def send_with_header(obj):
 
 
 def threaded_client(connection: socket.socket, player_id: int):
-    #print(f"[SERVER] Sending player {player} object: {players[player].__dict__}")
-    player_obj = game.players[player_id]
+    print(f"[SERVER] Sending player {player_id}, the player object.")
+    player_obj = game.get_player(player_id)
 
     send_length, msg = send_with_header(player_obj)
     connection.send(send_length)
@@ -59,9 +59,11 @@ def threaded_client(connection: socket.socket, player_id: int):
                 print(f"[SERVER] Player {player_id} lost connection!")
                 connected = False
             else:
-                game.player_out_of_bounds(received_data)
+                player_obj = received_data
 
-                game.set_player(player_id, received_data)
+                game.player_out_of_bounds(player_obj)
+
+                game.set_player(player_id, player_obj)
 
                 reply = game.players
 
