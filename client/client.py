@@ -1,6 +1,7 @@
 import pygame as pg
 
 from network import Network
+from shared.player import Player
 
 
 class Game:
@@ -15,7 +16,7 @@ class Game:
 
     def __init__(self):
         self.network = Network()
-        self.player = self.network.get_player()
+        self.player: Player = self.network.get_player()
 
         if self.player is None:
             self.running = False
@@ -79,6 +80,7 @@ class Game:
             self.player.handle_input()
 
             player_list = self.network.send(self.player)
+
             for player in player_list:
                 if player.id == self.player.id:
                     self.player = player
