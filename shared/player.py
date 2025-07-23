@@ -2,20 +2,19 @@ import pygame as pg
 
 
 class Player:
-    WIDTH, HEIGHT = 1200, 800
+    SCREEN_WIDTH, SCREEN_HEIGHT = 1200, 800
+    width, height = 50, 50
 
-    def __init__(self, id, x, y, width, height, color):
-        self.id = id
+    def __init__(self, player_id, x, y, color):
+        self.id = player_id
 
         self.pos = pg.Vector2(x, y)
-        self.width = width
-        self.height = height
         self.color = color
 
-        draw_x = self.WIDTH//2 - width//2
-        draw_y = self.HEIGHT//2 - height//2
+        draw_x = self.SCREEN_WIDTH//2 - self.width//2
+        draw_y = self.SCREEN_HEIGHT//2 - self.height//2
 
-        self.rect = pg.Rect(draw_x, draw_y, width, height)
+        self.rect = pg.Rect(draw_x, draw_y, self.width, self.height)
         self.vel = 3
 
     def draw(self, screen, offset: pg.Vector2 = None):

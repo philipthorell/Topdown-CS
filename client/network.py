@@ -25,7 +25,11 @@ class Network:
     def connect(self):
         try:
             self.client.connect(self.ADDRESS)
-            player_data = self.client.recv(2048)
+
+            recv_length = self.client.recv(self.HEADER)
+            recv_length = int(recv_length)
+
+            player_data = self.client.recv(recv_length)
             return pickle.loads(player_data)
 
         except Exception as e:
@@ -40,15 +44,18 @@ class Network:
         try:
             msg = pickle.dumps(data)
             msg_length = len(msg)
-            print("msg_lendth:", msg_length)
+            print("msg_length:", msg_length)
             send_length = str(msg_length).encode(self.FORMAT)
             send_length += b" " * (self.HEADER - len(send_length))  # padding msg_length
 
             self.client.send(send_length)
-
             self.client.send(msg)
-            recv_data = self.client.recv(2048)
 
+            recv_length = self.client.recv(self.HEADER)
+            recv_length = int(recv_length)
+            print("recv_length:", recv_length)
+
+            recv_data = self.client.recv(recv_length)
             return pickle.loads(recv_data)
 
         except (pickle.UnpicklingError, EOFError) as e:

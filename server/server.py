@@ -2,7 +2,7 @@ import socket
 from threading import Thread, active_count
 import pickle
 
-from shared.player import Player
+from game import Game
 
 
 SERVER_IP = socket.gethostbyname(socket.gethostname())
@@ -24,28 +24,25 @@ server.listen(MAX_PLAYERS)
 print("[SERVER] Waiting for a connection, Server started!")
 
 
-WORLD_SIZE = (0, 0), (2500, 2500)
-
-players = [
-    Player(1, 0, 0, 50, 50, (255, 0, 0)),  # Player 1
-    Player(2, 100, 100, 50, 50, (0, 0, 255))   # Player 2
-]
+game = Game()
 
 
-def player_out_of_bounds(the_player: Player):
-    if the_player.pos.x < WORLD_SIZE[0][0]:
-        the_player.pos.x = WORLD_SIZE[0][0]
-    if the_player.pos.x > WORLD_SIZE[1][0]:
-        the_player.pos.x = WORLD_SIZE[1][0]
-    if the_player.pos.y < WORLD_SIZE[0][1]:
-        the_player.pos.y = WORLD_SIZE[0][1]
-    if the_player.pos.y > WORLD_SIZE[1][1]:
-        the_player.pos.y = WORLD_SIZE[1][1]
+def send_with_header(obj):
+    msg = pickle.dumps(obj)
+    msg_length = len(msg)
+    send_length = str(msg_length).encode(FORMAT)
+    send_length += b" " * (HEADER - len(send_length))  # padding msg_length
+
+    return send_length, msg
 
 
-def threaded_client(connection: socket.socket, player: int):
+def threaded_client(connection: socket.socket, player_id: int):
     #print(f"[SERVER] Sending player {player} object: {players[player].__dict__}")
-    connection.send(pickle.dumps(players[player]))
+    player_obj = game.players[player_id]
+
+    send_length, msg = send_with_header(player_obj)
+    connection.send(send_length)
+    connection.send(msg)
 
     connected = True
     while connected:
@@ -56,19 +53,21 @@ def threaded_client(connection: socket.socket, player: int):
             msg_length = int(msg_length)
 
             msg = connection.recv(msg_length)
-            received_data: Player = pickle.loads(msg)
+            received_data = pickle.loads(msg)  # Player Object
 
             if not received_data:
-                print(f"[SERVER] Player {player} lost connection!")
+                print(f"[SERVER] Player {player_id} lost connection!")
                 connected = False
             else:
-                player_out_of_bounds(received_data)
+                game.player_out_of_bounds(received_data)
 
-                players[player] = received_data
+                game.set_player(player_id, received_data)
 
-                reply = players
+                reply = game.players
 
-                connection.sendall(pickle.dumps(reply))
+                data_length, data = send_with_header(reply)
+                connection.sendall(data_length)
+                connection.sendall(data)
 
         except EOFError:
             connected = False
@@ -77,20 +76,17 @@ def threaded_client(connection: socket.socket, player: int):
             print("[SERVER] Error:", e)
             connected = False
 
-    print(f"[SERVER] Player {player} disconnected!")
+    print(f"[SERVER] Player {player_id} disconnected!")
     connection.close()
-    global current_player
-    current_player -= 1
 
 
-current_player = 0
 while True:
     connection, address = server.accept()
     print(f"[NEW CONNECTION] {address} connected.")
 
-    thread = Thread(target=threaded_client, args=(connection, current_player))
+    player_id = game.add_player()
+
+    thread = Thread(target=threaded_client, args=(connection, player_id))
     thread.start()
 
     print(f"[ACTIVE CONNECTIONS] {active_count() - 1}")
-
-    current_player += 1
