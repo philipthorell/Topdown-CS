@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, shuffle
 
 from shared.player import Player
 
@@ -7,7 +7,7 @@ class Game:
     WORLD_SIZE = (0, 0), (2500, 2500)
 
     def __init__(self):
-        self.id_range = (1, 10000)
+        self.id_list = list(range(10000, 100000))
         self.player_ids = set()
         self.players = {}
 
@@ -18,10 +18,13 @@ class Game:
         self.players[player_id] = player
 
     def generate_id(self):
-        while True:
-            new_id = randint(*self.id_range)
-            if new_id not in self.player_ids:
-                return new_id
+        shuffle(self.id_list)
+        new_id = self.id_list.pop()
+        return new_id
+
+    def remove_player_by_id(self, player_id):
+        self.player_ids.remove(player_id)
+        del self.players[player_id]
 
     def add_player(self):
         player_id = self.generate_id()
@@ -30,6 +33,7 @@ class Game:
         color = (randint(0, 255), randint(0, 255), randint(0, 255))
         self.player_ids.add(player_id)
         self.players[player_id] = (Player(player_id, x, y, color))
+        print(self.players)
         return player_id
 
     def player_out_of_bounds(self, the_player: Player):

@@ -7,6 +7,7 @@ from shared.player import Player
 class Game:
     WIDTH, HEIGHT = 1200, 800
     screen_center = pg.Vector2(WIDTH//2, HEIGHT//2)
+    pg.font.init()
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     pg.display.set_caption("Client")
     clock = pg.time.Clock()
@@ -14,12 +15,27 @@ class Game:
 
     running = True
 
+    delta_time: float = 0
+
+    show_fps = True
+
     def __init__(self):
         self.network = Network()
         self.player: Player = self.network.get_player()
 
         if self.player is None:
             self.running = False
+
+    def event_loop(self):
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                self.player.DISCONNECT = True
+                self.running = False
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_ESCAPE:
+                    self.running = False
+                elif event.key == pg.K_F1:
+                    self.show_fps = not self.show_fps
 
     def draw_world_border(self):
         # draw left line
@@ -61,6 +77,14 @@ class Game:
         )
         pg.draw.rect(self.screen, color, rect)
 
+    def draw_fps(self):
+        fps = int(self.clock.get_fps())
+        fps_font = pg.font.SysFont("Consolas", 12)
+        fps_text = fps_font.render(f"FPS: {fps}", False, (0, 255, 0))
+        black_rect = pg.Surface((50, 10))
+        black_rect.blit(fps_text, (0, 0))
+        self.screen.blit(black_rect, (0, 0))
+
     def draw(self, player_list):
         self.screen.fill((128, 128, 128))
         for player in player_list:
@@ -69,31 +93,31 @@ class Game:
 
         self.draw_world_border()
 
+        if self.show_fps:
+            self.draw_fps()
+
     def run(self):
         while self.running:
-            # Handle events
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    self.running = False
-                if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_ESCAPE:
-                        self.running = False
+            self.delta_time = self.clock.tick(self.FPS) / 1000
 
-            self.player.handle_input()
+            # Handle events
+            self.event_loop()
+
+            self.player.handle_input(self.delta_time)
 
             player_list: dict = self.network.send(self.player)
+            if not player_list:
+                break
 
             self.player = player_list[self.player.id]
 
             other_players = [player for player_id, player in player_list.items() if player_id != self.player.id]
 
-            print(self.player.pos)
+            #print(self.player.pos)
 
             self.draw(other_players)
 
             pg.display.flip()
-
-            self.clock.tick(self.FPS)
 
         pg.quit()
 

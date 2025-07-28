@@ -44,7 +44,7 @@ class Network:
         try:
             msg = pickle.dumps(data)
             msg_length = len(msg)
-            print("msg_length:", msg_length)
+
             send_length = str(msg_length).encode(self.FORMAT)
             send_length += b" " * (self.HEADER - len(send_length))  # padding msg_length
 
@@ -52,11 +52,11 @@ class Network:
             self.client.send(msg)
 
             recv_length = self.client.recv(self.HEADER)
-            recv_length = int(recv_length)
-            print("recv_length:", recv_length)
+            if recv_length:
+                recv_length = int(recv_length)
 
-            recv_data = self.client.recv(recv_length)
-            return pickle.loads(recv_data)
+                recv_data = self.client.recv(recv_length)
+                return pickle.loads(recv_data)
 
         except (pickle.UnpicklingError, EOFError) as e:
             print(f"[ERROR] Pickle error: {e}")

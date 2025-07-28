@@ -37,7 +37,7 @@ def send_with_header(obj):
 
 
 def threaded_client(connection: socket.socket, player_id: int):
-    print(f"[SERVER] Sending player {player_id}, the player object.")
+    print(f"[SERVER] Sending player {player_id}, the player object.", end="\n")
     player_obj = game.get_player(player_id)
 
     send_length, msg = send_with_header(player_obj)
@@ -49,6 +49,7 @@ def threaded_client(connection: socket.socket, player_id: int):
         try:
             msg_length = connection.recv(HEADER).decode(FORMAT)
             if not msg_length:
+                print("EMPTY RECEIVE")
                 continue
             msg_length = int(msg_length)
 
@@ -61,6 +62,11 @@ def threaded_client(connection: socket.socket, player_id: int):
             else:
                 player_obj = received_data
 
+                if player_obj.DISCONNECT:
+                    print("PLAYER CHOSE TO DISCONNECT, ID:", player_id)
+                    connected = False
+                    continue
+
                 game.player_out_of_bounds(player_obj)
 
                 game.set_player(player_id, player_obj)
@@ -72,23 +78,24 @@ def threaded_client(connection: socket.socket, player_id: int):
                 connection.sendall(data)
 
         except EOFError:
+            print(f"[SERVER] Player {player_id} disconnected! [EOFError]")
             connected = False
 
         except Exception as e:
             print("[SERVER] Error:", e)
             connected = False
 
-    print(f"[SERVER] Player {player_id} disconnected!")
+    print("-" * 50)
     connection.close()
+    game.remove_player_by_id(player_id)
 
 
 while True:
     connection, address = server.accept()
     print(f"[NEW CONNECTION] {address} connected.")
+    print(f"[ACTIVE CONNECTIONS] {active_count()}")
 
     player_id = game.add_player()
 
     thread = Thread(target=threaded_client, args=(connection, player_id))
     thread.start()
-
-    print(f"[ACTIVE CONNECTIONS] {active_count() - 1}")

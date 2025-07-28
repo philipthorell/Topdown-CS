@@ -5,6 +5,8 @@ class Player:
     SCREEN_WIDTH, SCREEN_HEIGHT = 1200, 800
     width, height = 50, 50
 
+    DISCONNECT = False
+
     def __init__(self, player_id, x, y, color):
         self.id = player_id
 
@@ -15,7 +17,7 @@ class Player:
         draw_y = self.SCREEN_HEIGHT//2 - self.height//2
 
         self.rect = pg.Rect(draw_x, draw_y, self.width, self.height)
-        self.vel = 3
+        self.vel = 180
 
     def draw(self, screen, offset: pg.Vector2 = None):
         if offset:
@@ -27,20 +29,14 @@ class Player:
         else:
             pg.draw.rect(screen, self.color, self.rect)
 
-    def handle_input(self):
+    def handle_input(self, delta_time):
         keys = pg.key.get_pressed()
 
         if keys[pg.K_a]:
-            self.pos.x -= self.vel
+            self.pos.x -= self.vel * delta_time
         if keys[pg.K_d]:
-            self.pos.x += self.vel
+            self.pos.x += self.vel * delta_time
         if keys[pg.K_w]:
-            self.pos.y -= self.vel
+            self.pos.y -= self.vel * delta_time
         if keys[pg.K_s]:
-            self.pos.y += self.vel
-
-        self.update()
-
-    def update(self):
-        #self.rect = (self.pos.x, self.pos.y, self.width, self.height)
-        pass
+            self.pos.y += self.vel * delta_time
