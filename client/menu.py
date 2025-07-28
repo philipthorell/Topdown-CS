@@ -42,12 +42,14 @@ class Menu(ClientInfo):
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_F1:
                     self.show_fps = not self.show_fps
+
                 elif self.ip_insert_active:
                     if event.key == pg.K_RETURN:
                         self.connect_to_server = True
-                        self.text_input = ""
+
                     elif event.key == pg.K_BACKSPACE:
                         self.text_input = self.text_input[:-1]
+
                     elif len(self.text_input) < 30:
                         self.text_input += event.unicode
 

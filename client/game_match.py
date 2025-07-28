@@ -6,13 +6,11 @@ from shared.player import Player
 
 
 class GameMatch(ClientInfo):
+    player: Player
+    connected = True
+
     def __init__(self, network: Network):
         self.network = network
-        self.player: Player | None = None
-
-        self.connected = True
-
-    def load_in_player(self):
         self.player = self.network.receive()
 
     def event_loop(self):

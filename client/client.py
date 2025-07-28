@@ -8,10 +8,10 @@ from game_match import GameMatch
 
 class Client(ClientInfo):
     running = True
+    state = "Menu"
 
     def __init__(self):
         self.network = Network()
-        self.connected = False
         self.menu = Menu()
         self.game = None
 
@@ -19,25 +19,23 @@ class Client(ClientInfo):
         while self.running:
             self.delta_time = self.clock.tick(self.FPS) / 1000  # convert from ms to seconds
 
-            if self.menu:
+            if self.state == "Menu":
                 self.menu.update()
 
                 if self.menu.quit:
                     self.running = False
 
                 if self.menu.connect_to_server:
-                    self.connected = self.network.connect(self.menu.text_input)
-                    if self.connected:
-                        print("CONNECTED TO SERVER")
+                    connected = self.network.connect(self.menu.text_input)
+                    if connected:
                         self.game = GameMatch(self.network)
-                        self.game.load_in_player()
                         self.menu = None
+                        self.state = "Playing"
                     else:
-                        print("FAILED TO CONNECT")
                         self.menu.connect_to_server = False
                         self.menu.show_connection_error = True
 
-            elif self.game:
+            elif self.state == "Playing":
                 self.game.update(self.delta_time)
 
                 if self.game.quit:
@@ -47,6 +45,7 @@ class Client(ClientInfo):
                     self.network.disconnect()
                     self.menu = Menu()
                     self.game = None
+                    self.state = "Menu"
 
             pg.display.flip()
 
@@ -54,5 +53,7 @@ class Client(ClientInfo):
 
 
 if __name__ == '__main__':
+    pg.font.init()
+
     client = Client()
     client.run()

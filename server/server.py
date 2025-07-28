@@ -66,7 +66,7 @@ def threaded_client(connection: socket.socket, player_id: int):
                     connected = False
                     continue
 
-                game_data.player_out_of_bounds(player_obj)
+                game_data.player_collide_with_objects(player_obj)
 
                 game_data.update_player(player_id, player_obj)
 

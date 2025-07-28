@@ -4,7 +4,6 @@ import pygame as pg
 class ClientInfo:
     WIDTH, HEIGHT = 1200, 800
     screen_center = pg.Vector2(WIDTH // 2, HEIGHT // 2)
-    pg.font.init()
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     pg.display.set_caption("Client")
     clock = pg.time.Clock()

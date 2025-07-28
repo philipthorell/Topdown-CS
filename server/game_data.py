@@ -48,7 +48,7 @@ class GameData:
 
         return player_id
 
-    def player_out_of_bounds(self, the_player: Player):
+    def player_collide_with_objects(self, the_player: Player):
         # if player is at the LEFT border
         if the_player.pos.x < self.WORLD_SIZE[0][0]:
             the_player.pos.x = self.WORLD_SIZE[0][0]

@@ -5,6 +5,8 @@ class Player:
     SCREEN_WIDTH, SCREEN_HEIGHT = 1200, 800
     width, height = 50, 50
 
+    velocity = 180
+
     DISCONNECT = False
 
     def __init__(self, player_id, x, y, blue_team):
@@ -20,7 +22,6 @@ class Player:
         draw_y = self.SCREEN_HEIGHT//2 - self.height//2
 
         self.rect = pg.Rect(draw_x, draw_y, self.width, self.height)
-        self.vel = 180
 
     def draw(self, screen, offset: pg.Vector2 = None):
         if offset:
@@ -35,7 +36,7 @@ class Player:
     def handle_input(self, delta_time):
         keys = pg.key.get_pressed()
 
-        speed = self.vel * 1.5 if keys[pg.K_LSHIFT] else self.vel
+        speed = self.velocity * 3 if keys[pg.K_LSHIFT] else self.velocity
 
         if keys[pg.K_a]:
             self.pos.x -= speed * delta_time

@@ -1,16 +1,12 @@
 import socket
 import pickle
-from typing import Optional
 
 
 class Network:
-    client: Optional[socket.socket]
-
-    def __init__(self):
-        self.SERVER_IP = ""
-        self.PORT = 5555
-        self.HEADER = 64  # bytes
-        self.FORMAT = "utf-8"
+    client: socket.socket
+    PORT = 5555
+    HEADER = 64  # bytes
+    FORMAT = "utf-8"
 
     def connect(self, server_ip: str):
         if not server_ip:
