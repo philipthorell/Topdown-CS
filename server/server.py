@@ -12,7 +12,6 @@ SERVER_ADDRESS = (SERVER_IP, PORT)
 MAX_PLAYERS = 2
 HEADER = 64  # bytes
 FORMAT = "utf-8"
-DISCONNECT_MESSAGE = "!DISCONNECT"
 
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,6 +21,7 @@ print(f"[SERVER] Server is bound to ip: {SERVER_IP} on port: {PORT}")
 print("[SERVER] Server is starting...")
 server.listen(MAX_PLAYERS)
 print("[SERVER] Waiting for a connection, Server started!")
+print("-" * 50)
 
 
 game = Game()
@@ -37,7 +37,6 @@ def send_with_header(obj):
 
 
 def threaded_client(connection: socket.socket, player_id: int):
-    print(f"[SERVER] Sending player {player_id}, the player object.", end="\n")
     player_obj = game.get_player(player_id)
 
     send_length, msg = send_with_header(player_obj)
@@ -69,7 +68,7 @@ def threaded_client(connection: socket.socket, player_id: int):
 
                 game.player_out_of_bounds(player_obj)
 
-                game.set_player(player_id, player_obj)
+                game.update_player(player_id, player_obj)
 
                 reply = game.players
 
@@ -94,6 +93,7 @@ while True:
     connection, address = server.accept()
     print(f"[NEW CONNECTION] {address} connected.")
     print(f"[ACTIVE CONNECTIONS] {active_count()}")
+    print("-" * 50)
 
     player_id = game.add_player()
 

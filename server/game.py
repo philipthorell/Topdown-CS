@@ -9,12 +9,14 @@ class Game:
     def __init__(self):
         self.id_list = list(range(10000, 100000))
         self.player_ids = set()
+        self.blues = {}
+        self.reds = {}
         self.players = {}
 
     def get_player(self, player_id):
         return self.players[player_id]
 
-    def set_player(self, player_id: int, player: Player):
+    def update_player(self, player_id: int, player: Player):
         self.players[player_id] = player
 
     def generate_id(self):
@@ -30,10 +32,20 @@ class Game:
         player_id = self.generate_id()
         x = randint(self.WORLD_SIZE[0][0], self.WORLD_SIZE[1][0])
         y = randint(self.WORLD_SIZE[0][1], self.WORLD_SIZE[1][1])
-        color = (randint(0, 255), randint(0, 255), randint(0, 255))
+
+        # If there are less or equal blues, then join blue. If there are fewer reds, then join red.
+        blue_team = len(self.blues) <= len(self.reds)
+
         self.player_ids.add(player_id)
-        self.players[player_id] = (Player(player_id, x, y, color))
-        print(self.players)
+
+        player = Player(player_id, x, y, blue_team)
+        self.players[player_id] = player
+
+        if blue_team:
+            self.blues[player_id] = player
+        else:
+            self.reds[player_id] = player
+
         return player_id
 
     def player_out_of_bounds(self, the_player: Player):

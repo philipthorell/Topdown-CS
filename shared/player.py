@@ -7,11 +7,14 @@ class Player:
 
     DISCONNECT = False
 
-    def __init__(self, player_id, x, y, color):
+    def __init__(self, player_id, x, y, blue_team):
         self.id = player_id
 
         self.pos = pg.Vector2(x, y)
-        self.color = color
+
+        self.blue_team = blue_team
+
+        self.color = (0, 0, 255) if blue_team else (255, 0, 0)
 
         draw_x = self.SCREEN_WIDTH//2 - self.width//2
         draw_y = self.SCREEN_HEIGHT//2 - self.height//2
@@ -32,11 +35,13 @@ class Player:
     def handle_input(self, delta_time):
         keys = pg.key.get_pressed()
 
+        speed = self.vel * 1.5 if keys[pg.K_LSHIFT] else self.vel
+
         if keys[pg.K_a]:
-            self.pos.x -= self.vel * delta_time
+            self.pos.x -= speed * delta_time
         if keys[pg.K_d]:
-            self.pos.x += self.vel * delta_time
+            self.pos.x += speed * delta_time
         if keys[pg.K_w]:
-            self.pos.y -= self.vel * delta_time
+            self.pos.y -= speed * delta_time
         if keys[pg.K_s]:
-            self.pos.y += self.vel * delta_time
+            self.pos.y += speed * delta_time
