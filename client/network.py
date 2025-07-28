@@ -1,39 +1,55 @@
-from dotenv import load_dotenv
-
 import socket
 import pickle
-import os
-
-
-load_dotenv()
+from typing import Optional
 
 
 class Network:
+    client: Optional[socket.socket]
+
     def __init__(self):
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.SERVER_IP = os.getenv("local_server_ip_address")
+        self.SERVER_IP = ""
         self.PORT = 5555
-        self.ADDRESS = (self.SERVER_IP, self.PORT)
         self.HEADER = 64  # bytes
         self.FORMAT = "utf-8"
 
-        self.player = self.connect()
+    def connect(self, server_ip: str):
+        if not server_ip:
+            return False
 
-    def get_player(self):
-        return self.player
+        address = (server_ip, self.PORT)
 
-    def connect(self):
         try:
-            self.client.connect(self.ADDRESS)
+            self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.client.connect(address)
+            return True
 
-            recv_length = self.client.recv(self.HEADER)
-            recv_length = int(recv_length)
+        except socket.gaierror as e:
+            print(f"[ERROR] (CONNECTION) socket.gaierror: {e}")
+            print(f"IP address is not a valid IP address")
+        except ConnectionRefusedError as e:
+            print(f"[ERROR] (CONNECTION) ConnectionRefusedError: {e}")
+        #except OSError as e:
+        #    print(f"[ERROR] (CONNECTION) OSError: {e}")
+        #    return False
+        except TimeoutError as e:
+            print(f"[ERROR] (CONNECTION) TimeoutError: {e}")
+            return False
 
-            player_data = self.client.recv(recv_length)
-            return pickle.loads(player_data)
+    def disconnect(self):
+        self.client.shutdown(socket.SHUT_RDWR)
+        self.client.close()
 
-        except Exception as e:
-            print(f"[ERROR] Connection error: {e}")
+    def receive(self):
+        recv_length = self.client.recv(self.HEADER)
+
+        if not recv_length:
+            return
+        recv_length = int(recv_length)
+
+        data = self.client.recv(recv_length)
+        player_list = pickle.loads(data)
+
+        return player_list
 
     def send(self, data):
         """
@@ -43,22 +59,17 @@ class Network:
         """
         try:
             msg = pickle.dumps(data)
-            msg_length = len(msg)
 
+            msg_length = len(msg)
             send_length = str(msg_length).encode(self.FORMAT)
             send_length += b" " * (self.HEADER - len(send_length))  # padding msg_length
 
             self.client.send(send_length)
             self.client.send(msg)
 
-            recv_length = self.client.recv(self.HEADER)
-            if recv_length:
-                recv_length = int(recv_length)
-
-                recv_data = self.client.recv(recv_length)
-                return pickle.loads(recv_data)
-
-        except (pickle.UnpicklingError, EOFError) as e:
-            print(f"[ERROR] Pickle error: {e}")
+        except pickle.UnpicklingError as e:
+            print(f"[ERROR] (SEND) Pickle error: {e}")
+        except EOFError as e:
+            print(f"[ERROR] (SEND) EOFError error: {e}")
         except socket.error as e:
-            print(f"[ERROR] Socket error: {e}")
+            print(f"[ERROR] (SEND) Socket error: {e}")

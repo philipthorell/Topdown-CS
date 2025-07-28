@@ -2,7 +2,7 @@ import socket
 from threading import Thread, active_count
 import pickle
 
-from game import Game
+from game_data import GameData
 
 
 SERVER_IP = socket.gethostbyname(socket.gethostname())
@@ -24,7 +24,7 @@ print("[SERVER] Waiting for a connection, Server started!")
 print("-" * 50)
 
 
-game = Game()
+game_data = GameData()
 
 
 def send_with_header(obj):
@@ -37,7 +37,7 @@ def send_with_header(obj):
 
 
 def threaded_client(connection: socket.socket, player_id: int):
-    player_obj = game.get_player(player_id)
+    player_obj = game_data.get_player(player_id)
 
     send_length, msg = send_with_header(player_obj)
     connection.send(send_length)
@@ -66,27 +66,31 @@ def threaded_client(connection: socket.socket, player_id: int):
                     connected = False
                     continue
 
-                game.player_out_of_bounds(player_obj)
+                game_data.player_out_of_bounds(player_obj)
 
-                game.update_player(player_id, player_obj)
+                game_data.update_player(player_id, player_obj)
 
-                reply = game.players
+                reply = game_data.players
 
                 data_length, data = send_with_header(reply)
                 connection.sendall(data_length)
                 connection.sendall(data)
 
-        except EOFError:
-            print(f"[SERVER] Player {player_id} disconnected! [EOFError]")
+        except EOFError as e:
+            print(f"[ERROR] (player ID: {player_id}) EOFError: {e}")
             connected = False
 
-        except Exception as e:
-            print("[SERVER] Error:", e)
+        except ConnectionResetError as e:
+            print(f"[ERROR] (player ID: {player_id}) ConnectionResetError: {e}")
             connected = False
+
+        #except Exception as e:
+        #    print("[SERVER] Error:", e)
+        #    connected = False
 
     print("-" * 50)
     connection.close()
-    game.remove_player_by_id(player_id)
+    game_data.remove_player_by_id(player_id)
 
 
 while True:
@@ -95,7 +99,7 @@ while True:
     print(f"[ACTIVE CONNECTIONS] {active_count()}")
     print("-" * 50)
 
-    player_id = game.add_player()
+    player_id = game_data.add_player()
 
     thread = Thread(target=threaded_client, args=(connection, player_id))
     thread.start()

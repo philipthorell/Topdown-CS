@@ -1,13 +1,14 @@
-from random import randint, shuffle
+from random import randint
+from itertools import count
 
 from shared.player import Player
 
 
-class Game:
+class GameData:
     WORLD_SIZE = (0, 0), (2500, 2500)
 
     def __init__(self):
-        self.id_list = list(range(10000, 100000))
+        self.id_list = count(10000)  # starts from 10000 and goes on infinite
         self.player_ids = set()
         self.blues = {}
         self.reds = {}
@@ -20,8 +21,7 @@ class Game:
         self.players[player_id] = player
 
     def generate_id(self):
-        shuffle(self.id_list)
-        new_id = self.id_list.pop()
+        new_id = next(self.id_list)
         return new_id
 
     def remove_player_by_id(self, player_id):
