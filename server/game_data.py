@@ -32,6 +32,10 @@ class GameData:
 
     def remove_player_by_id(self, player_id):
         self.player_ids.remove(player_id)
+        if self.players[player_id].blue_team:
+            del self.blues[player_id]
+        else:
+            del self.reds[player_id]
         del self.players[player_id]
 
     def add_player(self):
@@ -40,8 +44,8 @@ class GameData:
         # If there are less or equal blues, then join blue. If there are fewer reds, then join red.
         blue_team = len(self.blues) <= len(self.reds)
 
-        x = 1750 if blue_team else 800
-        y = 550 if blue_team else 800
+        x = 1750 if blue_team else 1200
+        y = 550 if blue_team else 2650
 
         self.player_ids.add(player_id)
 
@@ -59,33 +63,45 @@ class GameData:
         tmx_data = pytmx.TiledMap("../shared/maps/dust2.tmx")
 
         for layer in tmx_data.visible_layers:
-            if hasattr(layer, 'data') and layer.properties.get("collidable", False):
+            if isinstance(layer, pytmx.TiledTileLayer) and layer.name in ["walls", "boxes"]:
                 for x, y, gid in layer:
-                    if gid != 0:  # If there's a tile at this position
+                    tile_image = tmx_data.get_tile_image_by_gid(gid)
+                    if tile_image:
                         px = x * tmx_data.tilewidth
                         py = y * tmx_data.tileheight
-                        print(f"Wall tile at ({px}, {py}) is collidable")
                         wall_rect = pg.Rect(px, py, tmx_data.tilewidth, tmx_data.tileheight)
                         self.walls.append(wall_rect)
 
-    def player_collide_with_objects(self, the_player: Player, old_player_pos: pg.Vector2):
-        # if player is at the LEFT border
-        if the_player.pos.x < self.WORLD_SIZE[0][0]:
-            the_player.pos.x = self.WORLD_SIZE[0][0]
-        # if player is at the RIGHT border
-        if the_player.pos.x > self.WORLD_SIZE[1][0]:
-            the_player.pos.x = self.WORLD_SIZE[1][0]
-        # if player is at the TOP border
-        if the_player.pos.y < self.WORLD_SIZE[0][1]:
-            the_player.pos.y = self.WORLD_SIZE[0][1]
-        # if player is at the BOTTOM border
-        if the_player.pos.y > self.WORLD_SIZE[1][1]:
-            the_player.pos.y = self.WORLD_SIZE[1][1]
+    def check_player_collision(self,
+                               player_id: int,
+                               direction: tuple[float, float],
+                               sprint: bool,
+                               delta_time: float):
 
-        for wall in self.walls:
-            rect = pg.Rect(the_player.pos.x, the_player.pos.y, the_player.rect.width, the_player.rect.height)
-            if rect.colliderect(wall):
-                print(the_player.pos, "PLAYER_POS")
-                print(wall)
-                print(f"[{wall[0]}, {wall[1]}], [{wall[2]}, {wall[3]}] WALL_POS")
-                the_player.pos = old_player_pos
+        player = self.players[player_id]
+
+        player_pos = player.pos
+
+        speed = 180 * (3 if sprint else 1)
+        dx, dy = direction
+
+        dx *= speed * delta_time
+        dy *= speed * delta_time
+
+        x = player_pos.x
+        y = player_pos.y
+
+        player_rect = pg.Rect(x, y, 50, 50)  # 50 for width & height
+
+        new_rect = player_rect.move(dx, 0)
+        if not any(new_rect.colliderect(wall) for wall in self.walls):
+            player_rect = new_rect
+
+        # Then try moving on Y axis
+        new_rect = player_rect.move(0, dy)
+        if not any(new_rect.colliderect(wall) for wall in self.walls):
+            player_rect = new_rect
+
+        new_pos = player_rect.topleft
+
+        player.pos = pg.Vector2(new_pos)

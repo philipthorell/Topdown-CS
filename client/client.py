@@ -17,7 +17,7 @@ class Client(ClientInfo):
 
     def run(self):
         while self.running:
-            self.delta_time = self.clock.tick(self.FPS) / 1000  # convert from ms to seconds
+            self.clock.tick(self.FPS)
 
             if self.state == "Menu":
                 self.menu.update()
@@ -36,7 +36,7 @@ class Client(ClientInfo):
                         self.menu.show_connection_error = True
 
             elif self.state == "Playing":
-                self.game.update(self.delta_time)
+                self.game.update()
 
                 if self.game.quit:
                     self.running = False

@@ -6,8 +6,7 @@ class Player:
     width, height = 50, 50
 
     velocity = 180
-
-    DISCONNECT = False
+    sprint_multiplier = 3
 
     def __init__(self, player_id, x, y, blue_team):
         self.id = player_id
@@ -33,6 +32,17 @@ class Player:
         else:
             pg.draw.rect(screen, self.color, self.rect)
 
+    def move(self, direction: pg.Vector2, sprint: bool, dt: float):
+        dx, dy = direction
+        length = (dx**2 + dy**2)**0.5
+        if length != 0:
+            dx /= length
+            dy /= length
+
+        speed = self.velocity * (self.sprint_multiplier if sprint else 1)
+        self.pos.x += dx * speed * dt
+        self.pos.y += dy * speed * dt
+"""
     def handle_input(self, delta_time):
         keys = pg.key.get_pressed()
 
@@ -45,4 +55,4 @@ class Player:
         if keys[pg.K_w]:
             self.pos.y -= speed * delta_time
         if keys[pg.K_s]:
-            self.pos.y += speed * delta_time
+            self.pos.y += speed * delta_time"""

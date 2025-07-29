@@ -48,11 +48,6 @@ class Network:
         return player_list
 
     def send(self, data):
-        """
-
-        :param data: Player object
-        :return: list of player objects
-        """
         try:
             msg = pickle.dumps(data)
 

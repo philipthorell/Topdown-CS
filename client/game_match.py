@@ -10,11 +10,18 @@ class GameMatch(ClientInfo):
     player: Player
     connected = True
 
+    WORLD_END = (2944, 2944)
+
     def __init__(self, network: Network):
         self.network = network
         self.player = self.network.receive()
 
+        self.inputs = {"dir": (0, 0), "sprint": False, "disconnect": False}
+
         self.walls = []
+        self.world_sprites = []
+
+        self.show_debug = False
 
         self.load_map()
 
@@ -22,12 +29,15 @@ class GameMatch(ClientInfo):
         for event in pg.event.get():
 
             if event.type == pg.QUIT:
-                self.player.DISCONNECT = True
+                self.inputs["disconnect"] = True
                 self.quit = True
 
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_F1:
                     self.show_fps = not self.show_fps
+
+                elif event.key == pg.K_F2:
+                    self.show_debug = not self.show_debug
 
                 elif event.key == pg.K_ESCAPE:
                     self.player.DISCONNECT = True
@@ -37,16 +47,32 @@ class GameMatch(ClientInfo):
         tmx_data = pytmx.load_pygame("../shared/maps/dust2.tmx")
 
         for layer in tmx_data.visible_layers:
-            if hasattr(layer, 'data') and layer.properties.get("collidable", False):
+            if isinstance(layer, pytmx.TiledTileLayer) and layer.name in ["walls", "boxes"]:
                 for x, y, gid in layer:
-                    if gid != 0:  # If there's a tile at this position
+                    tile_image = tmx_data.get_tile_image_by_gid(gid)
+                    if tile_image:
                         px = x * tmx_data.tilewidth
                         py = y * tmx_data.tileheight
-                        print(f"Wall tile at ({px}, {py}) is collidable")
                         wall_rect = pg.Rect(px, py, tmx_data.tilewidth, tmx_data.tileheight)
                         self.walls.append(wall_rect)
 
-    def draw_walls(self):
+        for layer in tmx_data.visible_layers:
+            if isinstance(layer, pytmx.TiledTileLayer) and layer.name in ["ground", "walls", "boxes"]:
+                for x, y, gid in layer:
+                    tile_image = tmx_data.get_tile_image_by_gid(gid)
+                    if tile_image:
+                        self.world_sprites.append(
+                            (tile_image,
+                             (x * tmx_data.tilewidth, y * tmx_data.tileheight))
+                        )
+
+    def draw_world(self):
+        for sprite, pos in self.world_sprites:
+            x = pos[0] + self.screen_center.x - self.player.pos.x - self.player.width // 2
+            y = pos[1] + self.screen_center.y - self.player.pos.y - self.player.height // 2
+            self.screen.blit(sprite, (x, y))
+
+    def draw_wall_rects(self):
         for wall in self.walls:
             x = wall[0] + self.screen_center.x - self.player.pos.x - self.player.width // 2
             y = wall[1] + self.screen_center.y - self.player.pos.y - self.player.height // 2
@@ -58,29 +84,29 @@ class GameMatch(ClientInfo):
         x = 0 + self.screen_center.x - self.player.pos.x - self.player.width // 2
         y = 0 + self.screen_center.y - self.player.pos.y - self.player.height // 2
         x2 = 0 + self.screen_center.x - self.player.pos.x - self.player.width // 2
-        y2 = 5888 + self.screen_center.y - self.player.pos.y + self.player.height // 2
+        y2 = self.WORLD_END[1] + self.screen_center.y - self.player.pos.y + self.player.height // 2
         pg.draw.line(self.screen, "black", (x, y), (x2, y2), 1)
         # draw top line
         x = 0 + self.screen_center.x - self.player.pos.x - self.player.width // 2
         y = 0 + self.screen_center.y - self.player.pos.y - self.player.height // 2
-        x2 = 5888 + self.screen_center.x - self.player.pos.x + self.player.width // 2
+        x2 = self.WORLD_END[0] + self.screen_center.x - self.player.pos.x + self.player.width // 2
         y2 = 0 + self.screen_center.y - self.player.pos.y - self.player.height // 2
         pg.draw.line(self.screen, "black", (x, y), (x2, y2), 1)
         # draw right line
-        x = 5888 + self.screen_center.x - self.player.pos.x + self.player.width // 2
+        x = self.WORLD_END[0] + self.screen_center.x - self.player.pos.x + self.player.width // 2
         y = 0 + self.screen_center.y - self.player.pos.y - self.player.height // 2
-        x2 = 5888 + self.screen_center.x - self.player.pos.x + self.player.width // 2
-        y2 = 5888 + self.screen_center.y - self.player.pos.y + self.player.height // 2
+        x2 = self.WORLD_END[0] + self.screen_center.x - self.player.pos.x + self.player.width // 2
+        y2 = self.WORLD_END[1] + self.screen_center.y - self.player.pos.y + self.player.height // 2
         pg.draw.line(self.screen, "black", (x, y), (x2, y2), 1)
         # draw bottom line
         x = 0 + self.screen_center.x - self.player.pos.x - self.player.width // 2
-        y = 5888 + self.screen_center.y - self.player.pos.y + self.player.height // 2
-        x2 = 5888 + self.screen_center.x - self.player.pos.x + self.player.width // 2
-        y2 = 5888 + self.screen_center.y - self.player.pos.y + self.player.height // 2
+        y = self.WORLD_END[1] + self.screen_center.y - self.player.pos.y + self.player.height // 2
+        x2 = self.WORLD_END[0] + self.screen_center.x - self.player.pos.x + self.player.width // 2
+        y2 = self.WORLD_END[1] + self.screen_center.y - self.player.pos.y + self.player.height // 2
         pg.draw.line(self.screen, "black", (x, y), (x2, y2), 1)
 
     def draw_other_player(self, other_player):
-        color = other_player.color
+        color = (0, 0, 255) if other_player.blue_team else (255, 0, 0)
         dx = other_player.pos.x - self.player.pos.x
         dy = other_player.pos.y - self.player.pos.y
         x = self.screen_center.x + dx
@@ -95,31 +121,56 @@ class GameMatch(ClientInfo):
 
     def draw(self, player_list):
         self.screen.fill((128, 128, 128))
+
+        self.draw_world()
+
         for player in player_list:
             self.draw_other_player(player)
         self.player.draw(self.screen)
 
-        self.draw_walls()
+        if self.show_debug:
+            self.draw_wall_rects()
 
         self.draw_world_border()
 
         if self.show_fps:
             self.draw_fps()
 
-    def update(self, delta_time):
+    def movement(self):
+        keys = pg.key.get_pressed()
+        dx = dy = 0
+
+        if keys[pg.K_w]:
+            dy -= 1
+        if keys[pg.K_s]:
+            dy += 1
+        if keys[pg.K_a]:
+            dx -= 1
+        if keys[pg.K_d]:
+            dx += 1
+
+        sprint = keys[pg.K_LSHIFT]
+
+        self.inputs["dir"] = (dx, dy)
+        self.inputs["sprint"] = sprint
+
+    def update(self):
         self.event_loop()
 
-        self.player.handle_input(delta_time)
+        self.movement()
 
-        self.network.send(self.player)
+        self.network.send(self.inputs)
 
+        # {player_id: player_pos, ...}
         player_list: dict = self.network.receive()
 
         if not player_list:
             self.connected = False
             return
 
-        self.player = player_list.pop(self.player.id)
+        self.player.pos = player_list.pop(self.player.id)
+
+        print(self.player.pos)
 
         other_players = player_list.values()
 
