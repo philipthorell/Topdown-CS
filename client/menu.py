@@ -43,6 +43,9 @@ class Menu(ClientInfo):
                 if event.key == pg.K_F1:
                     self.show_fps = not self.show_fps
 
+                elif event.key == pg.K_ESCAPE and self.server_connect_screen:
+                    self.server_connect_screen = False
+
                 elif self.ip_insert_active:
                     if event.key == pg.K_RETURN:
                         self.connect_to_server = True
