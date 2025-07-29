@@ -1,12 +1,12 @@
 import pygame as pg
 
-from client_info import ClientInfo
+from base_info import BaseInfo
 from network import Network
 from menu import Menu
 from game_match import GameMatch
 
 
-class Client(ClientInfo):
+class Client(BaseInfo):
     running = True
     state = "Menu"
 

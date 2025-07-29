@@ -1,7 +1,7 @@
 import pygame as pg
 
 
-class ClientInfo:
+class BaseInfo:
     WIDTH, HEIGHT = 1200, 800
     screen_center = pg.Vector2(WIDTH // 2, HEIGHT // 2)
     screen = pg.display.set_mode((WIDTH, HEIGHT))

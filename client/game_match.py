@@ -1,12 +1,12 @@
 import pygame as pg
 import pytmx
 
-from client_info import ClientInfo
+from base_info import BaseInfo
 from network import Network
 from shared.player import Player
 
 
-class GameMatch(ClientInfo):
+class GameMatch(BaseInfo):
     player: Player
     connected = True
 

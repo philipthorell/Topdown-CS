@@ -1,9 +1,9 @@
 import pygame as pg
 
-from client_info import ClientInfo
+from base_info import BaseInfo
 
 
-class Menu(ClientInfo):
+class Menu(BaseInfo):
     server_connect_screen = False
     ip_insert_active = False
     connect_to_server = False
