@@ -170,8 +170,6 @@ class GameMatch(BaseInfo):
 
         self.player.pos = player_list.pop(self.player.id)
 
-        print(self.player.pos)
-
         other_players = player_list.values()
 
         self.draw(other_players)

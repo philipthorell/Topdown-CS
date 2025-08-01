@@ -15,7 +15,7 @@ class NetworkServer:
     HEADER = 64  # bytes
     FORMAT = "utf-8"
 
-    TICK_RATE = 60
+    TICK_RATE = 64
 
     def __init__(self):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

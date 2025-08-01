@@ -80,28 +80,38 @@ class GameData:
 
         player = self.players[player_id]
 
-        player_pos = player.pos
-
         speed = 180 * (3 if sprint else 1)
         dx, dy = direction
 
         dx *= speed * delta_time
         dy *= speed * delta_time
 
-        x = player_pos.x
-        y = player_pos.y
+        for tile in self.walls:
+            # Check for collision in x direction
+            if tile.colliderect(player.pos.x + dx, player.pos.y, player.width, player.height):
+                if dx < 0:
+                    dx = tile.right - player.pos.x
+                elif dx > 0:
+                    dx = tile.left - (player.pos.x + player.width)
 
-        player_rect = pg.Rect(x, y, 50, 50)  # 50 for width & height
+            # Check for collision in y direction
+            if tile.colliderect(player.pos.x, player.pos.y + dy, player.width, player.height):
+                if dy < 0:
+                    dy = tile.bottom - player.pos.y
+                elif dy > 0:
+                    dy = tile.top - (player.pos.y + player.height)
 
-        new_rect = player_rect.move(dx, 0)
-        if not any(new_rect.colliderect(wall) for wall in self.walls):
-            player_rect = new_rect
+        player.pos += pg.Vector2(dx, dy)
+
+                    #new_rect = player_rect.move(dx, 0)
+        #if not any(new_rect.colliderect(wall) for wall in self.walls):
+        #    player_rect = new_rect
 
         # Then try moving on Y axis
-        new_rect = player_rect.move(0, dy)
-        if not any(new_rect.colliderect(wall) for wall in self.walls):
-            player_rect = new_rect
+        #new_rect = player_rect.move(0, dy)
+        #if not any(new_rect.colliderect(wall) for wall in self.walls):
+        #    player_rect = new_rect
 
-        new_pos = player_rect.topleft
+        #new_pos = player_rect.topleft
 
-        player.pos = pg.Vector2(new_pos)
+        #player.pos = pg.Vector2(new_pos)

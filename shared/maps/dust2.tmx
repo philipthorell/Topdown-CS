@@ -216,7 +216,4 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <imagelayer id="3" name="reference" visible="0" opacity="0">
-  <image source="../../../../../Downloads/dust (2).jpg" width="3000" height="3000"/>
- </imagelayer>
 </map>
